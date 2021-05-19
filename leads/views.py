@@ -19,28 +19,9 @@ def leaddetail(request,pk):
     }
     return render(request,'leaddetail.html',context)
 
-# def leadcreate(request):
-#     form = LeadForm()
-#     if request.method == "POST":
-#         print('Recieveing a post req')
-#         form = LeadForm(request.POST)
-#         if form.is_valid():
-#             print(form.cleaned_data)
-#             first_name = form.cleaned_data['first_name']
-#             last_name = form.cleaned_data['last_name']
-#             age = form.cleaned_data['age']
-#             agent = Agent.objects.first()
-#             Lead.objects.create(
-#                 first_name = first_name,
-#                 last_name = last_name,
-#                 age = age,
-#                 agent = agent,
-#             )
-#             return redirect('/leads')
-#     context = {
-#         'form':form #Passing form as a context
-#     }
-#     return render(request,'leadcreate.html',context)
+def landingpage(request):
+    return render(request,'landingpage.html')
+
 
 def leadcreate(request):
     form = LeadModelForm()
@@ -54,3 +35,22 @@ def leadcreate(request):
         'form':form #Passing form as a context
     }
     return render(request,'leadcreate.html',context)
+
+def leadupdate(request,pk):
+    lead = Lead.objects.get(id=pk)
+    form = LeadModelForm(instance=lead)
+    if request.method == "POST":
+        form = LeadModelForm(request.POST,instance=lead)
+        if form.is_valid():
+            form.save()
+            return redirect('/leads')
+    context={
+        'form':form,
+        'lead':lead
+    }
+    return render(request,'leadupdate.html',context)
+
+def leaddelete(request,pk):
+    lead = Lead.objects.get(id=pk)
+    lead.delete()
+    return redirect('/leads')
