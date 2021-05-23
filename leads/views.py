@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
 from django.http import request,HttpResponse
 from .models import Lead,Agent,Category
-from .forms import LeadForm , LeadModelForm,CustomUserCreationForm,AssignAgentForm,LeadCategoryUpdateForm
+from .forms import LeadForm , LeadModelForm,CustomUserCreationForm,AssignAgentForm,LeadCategoryUpdateForm,CategoryModelForm 
 from django.core.mail import send_mail
 
 from django.views import generic
@@ -84,10 +84,58 @@ class LeadDetailView(mixins.LoginRequiredMixin,generic.DetailView):
             queryset = queryset.filter(agent__user=user)
         return queryset
 
+class CategoryCreateView(OrganiserAndLoginRequiredMixin, generic.CreateView):
+    template_name = "leads/category_create.html"
+    form_class = CategoryModelForm
+
+    def get_success_url(self):
+        return '/leads'
+
+    def form_valid(self, form):
+        category = form.save(commit=False)
+        category.organisation = self.request.user.userprofile
+        category.save()
+        return super(CategoryCreateView, self).form_valid(form)
 
 
+class CategoryUpdateView(OrganiserAndLoginRequiredMixin, generic.UpdateView):
+    template_name = "leads/categoryupdate.html"
+    form_class = CategoryModelForm
 
+    def get_success_url(self):
+        return '/leads'
 
+    def get_queryset(self):
+        user = self.request.user
+        # initial queryset of leads for the entire organisation
+        if user.is_organiser:
+            queryset = Category.objects.filter(
+                organisation=user.userprofile
+            )
+        else:
+            queryset = Category.objects.filter(
+                organisation=user.agent.organisation
+            )
+        return queryset
+
+class CategoryDeleteView(OrganiserAndLoginRequiredMixin, generic.DeleteView):
+    template_name = "categorydelete.html"
+
+    def get_success_url(self):
+        return '/leads'
+
+    def get_queryset(self):
+        user = self.request.user
+        # initial queryset of leads for the entire organisation
+        if user.is_organiser:
+            queryset = Category.objects.filter(
+                organisation=user.userprofile
+            )
+        else:
+            queryset = Category.objects.filter(
+                organisation=user.agent.organisation
+            )
+        return queryset
 
 
 
